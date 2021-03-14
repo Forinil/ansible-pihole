@@ -2,6 +2,7 @@
 
 - include_vars: vars/secret.yml
   when: (secrets_available is defined) and secrets_available == true
+  no_log: true
 
 - name: "Checking if Pi-Hole is already installed"
   stat:
