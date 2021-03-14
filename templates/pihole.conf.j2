@@ -1,0 +1,13 @@
+<VirtualHost *:80>
+   ServerAdmin {{ email_webmaster }}
+   DocumentRoot {{ pihole_wwwroot }}
+
+   <Directory {{ pihole_wwwroot }}>
+      Options FollowSymLinks MultiViews
+      AllowOverride all
+      Require all granted
+   </Directory>
+
+	ErrorLog ${APACHE_LOG_DIR}/pihole_error.log
+	CustomLog ${APACHE_LOG_DIR}/pihole_access.log combined
+</VirtualHost>

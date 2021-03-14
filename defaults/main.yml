@@ -1,0 +1,29 @@
+---
+
+user_pihole: "pihole"
+group_pihole: "pihole"
+
+fspath_pihole_config: "/etc/pihole"
+
+# settings for Pi-Hole when using Apache webserver
+pihole_wwwroot: "/var/www/html/admin"
+
+# pihole_privacylevel
+# 0 = Show everything and record everything
+#     Gives maximum amount of statistics
+# 1 = Hide domains: Display and store all domains as "hidden"
+#     This disables the Top Domains and Top Ads tables on the dashboard
+# 2 = Hide domains and clients: Display and store all domains as "hidden" and all clients as "0.0.0.0"
+#     This disables all tables on the dashboard
+# 3 = Anonymous mode: This disables basically everything except the live anonymous statistics
+#     No history is saved at all to the database, and nothing is shown in the query log. Also, there are no top item lists.
+# 4 = No Statistics mode: This disables all statistics processing. Even the query counters will not be available.
+#     Note that regex blocking is not available when query analyzing is disabled.
+#     Additionally, you can disable logging to the file /var/log/pihole.log using `sudo pihole logging off`.
+### NOTE: set pihole_privacylevel in the hosts file for each host
+###       This line resets to default value if not set in hosts file
+pihole_privacy: "{{ pihole.privacylevel | default('1') }}"
+
+# https://docs.pi-hole.net/ftldns/blockingmode/
+# NULL is the Pi-Hole default blocking mode
+pihole_blockingmode: "NULL"

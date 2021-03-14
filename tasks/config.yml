@@ -1,0 +1,30 @@
+---
+
+# For the unattended install to work as intended (i.e., unattended)
+# we must place setupVars.conf into place *before* running the installer
+# This means we also need to create the pihole user/group ourselves
+
+- name: "Create {{ user_pihole }} system user and group (nologin shell)"
+  user:
+    name: "{{ user_pihole }}"
+    state: present
+    system: yes
+    shell: /usr/sbin/nologin
+
+# this task requires the user_pihole user/group to exist, fails otherwise
+- name: Create Pi-Hole configuration directory
+  file:
+    name: "{{ fspath_pihole_config }}"
+    state: directory
+    owner: "{{ user_pihole }}"
+    group: "{{ user_pihole }}"
+    mode: 0755
+
+- name: Prepare Pi-Hole configuration
+  template:
+    src: "setupVars.conf.j2"
+    dest: "{{ fspath_pihole_config }}/setupVars.conf"
+    owner: root
+    group: root
+    mode: 0644
+

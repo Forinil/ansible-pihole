@@ -1,0 +1,5 @@
+---
+
+dependencies:
+  # depend on Apache, but not for all hosts
+  - { role: apache, become: true, tags: apache, when: [ ansible_lsb.id == "Raspbian", ansible_hostname == "alexandria" ] }

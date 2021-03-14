@@ -1,0 +1,27 @@
+---
+
+# https://github.com/gsemet/ansible-rpi-pihole/blob/master/roles/pi/tasks/main.yml
+# https://gist.github.com/bendews/e09edfc60e581ec4c686c4b70297f543
+# https://github.com/Freekers/automated-pihole/blob/master/playbook.yml
+
+# After reading up a little, it seems clear that the regular Pi-Hole
+# install script will not work with Ansible by default.
+# And in several places, I've seen the pihole devs state thay they don't intend
+# to support Ansible playbooks. Fair enough. I've found suggested work-arounds:
+# https://github.com/drew-kun/ansible-pihole/blob/master/tasks/install.yml
+# https://discourse.pi-hole.net/t/automated-installation-enhancements-and-fixes/28746
+# https://github.com/pi-hole/pi-hole/pull/3195
+
+- name: "Clone the Pi-Hole repo"
+  git:
+    repo: https://github.com/pi-hole/pi-hole.git
+    depth: 1
+    dest: "{{ ansible_env.HOME }}/Downloads/pi-hole"
+    version: master
+
+# pihole unattented install only works if /etc/pihole/setupVars.conf already exists
+# debug tip: keep track of the install progress by tailing the log-file
+- name: Run Pi-Hole install script
+  shell: "'{{ ansible_env.HOME }}/Downloads/pi-hole/automated install/basic-install.sh' --unattended >> {{ ansible_env.HOME }}/Downloads/pihole_install.log"
+  args:
+    warn: false

@@ -1,0 +1,39 @@
+---
+
+# Immediately after installing Pihole, we need to uninstall lighttpd
+# Only on alexandria though, because here apache would conflict with lighttpd
+# Although, at this point, I don't expect lighttpd to be installed 
+# and if our changes to setupvars.conf below work, lighttpd should not be installed afterwards either
+- name: Uninstall lighttpd server
+  apt:
+    name: lighttpd
+    state: absent
+    purge: yes
+
+- name: Disable Pi-Hole webserver
+  lineinfile:
+    path: "{{ fspath_pihole_config }}/setupVars.conf"
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^INSTALL_WEB_SERVER=", line: "INSTALL_WEB_SERVER=false" }
+    - { regexp: "^LIGHTTPD_ENABLED=", line: "LIGHTTPD_ENABLED=false" }
+
+- name: "Configure Apache vhost for Pi-Hole"
+  template:
+    src: "pihole.conf.j2"
+    dest: "/etc/apache2/sites-available/pihole.conf"
+    owner: root
+    group: root
+    mode: u=rw,go=r
+  notify: reload apache
+
+- name: "Check whether Pi-Hole site is already enabled"
+  stat:
+    path: "/etc/apache2/sites-enabled/pihole.conf"
+  register: pihole_apache_vhost_enabled
+
+- name: "a2ensite pihole.conf"
+  command: "a2ensite pihole.conf"
+  when: pihole_apache_vhost_enabled.stat.exists == False
