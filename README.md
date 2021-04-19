@@ -37,16 +37,27 @@ Right now, it opens a terminal session, which is unnecessary.
 
 
 
+## Gravity-Sync(?)
+
+https://github.com/vmstan/gravity-sync/  
+https://github.com/vmstan/gravity-sync/wiki
+
+Sounds interesting, except I think I prefer each Pi-Hole to be independent.
+Except perhaps for the FM Pi-Hole's...
+
+
+
+
 ## Refs
 
-https://discourse.pi-hole.net/t/using-pi-hole-docker-container-behind-reverse-proxy-without-it-being-the-default-host/39804
++ https://discourse.pi-hole.net/t/using-pi-hole-docker-container-behind-reverse-proxy-without-it-being-the-default-host/39804
 
-https://old.reddit.com/r/pihole/comments/5bvi29/set_up_a_webpage_on_piholes_lighttpd/
-https://old.reddit.com/r/pihole/comments/6ouy8l/quick_and_dirty_multiserver_hosting_alongside/
-https://old.reddit.com/r/pihole/comments/ex8vc9/run_another_site_alongside_pihole/
-https://discourse.pi-hole.net/t/how-do-i-host-a-website-alongside-pi-hole/4187
++ https://old.reddit.com/r/pihole/comments/5bvi29/set_up_a_webpage_on_piholes_lighttpd/
++ https://old.reddit.com/r/pihole/comments/6ouy8l/quick_and_dirty_multiserver_hosting_alongside/
++ https://old.reddit.com/r/pihole/comments/ex8vc9/run_another_site_alongside_pihole/
++ https://discourse.pi-hole.net/t/how-do-i-host-a-website-alongside-pi-hole/4187
 
-https://github.com/pi-hole/pi-hole/issues/1785
-https://github.com/pi-hole/pi-hole/pull/353
-https://old.reddit.com/r/pihole/comments/aw5q1j/lighttpd_port_change_question/
-https://discourse.pi-hole.net/t/how-to-edit-external-conf-to-override-lightpd-conf-default-port/15712/1
++ https://github.com/pi-hole/pi-hole/issues/1785
++ https://github.com/pi-hole/pi-hole/pull/353
++ https://old.reddit.com/r/pihole/comments/aw5q1j/lighttpd_port_change_question/
++ https://discourse.pi-hole.net/t/how-to-edit-external-conf-to-override-lightpd-conf-default-port/15712/1

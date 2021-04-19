@@ -1,9 +1,9 @@
 BLOCKING_ENABLED=true
 {# the following if-else sets one password for FM-NET, and another (default) for all other hosts #}
 {% if lan.domain is defined and lan.domain == "fmnet" %}
-WEBPASSWORD={{ pihole_fmpassword_hashed }}
+WEBPASSWORD={{ lookup("community.general.passwordstore", "ansible/roles/pihole/fmpassword_hash") }}
 {% else %}
-WEBPASSWORD={{ pihole_webpassword_hashed }}
+WEBPASSWORD={{ lookup("community.general.passwordstore", "ansible/roles/pihole/webpassword_hash") }}
 {% endif %}
 PIHOLE_INTERFACE={{ pihole.network.interface }}
 IPV4_ADDRESS={{ pihole.network.ipv4 }}
