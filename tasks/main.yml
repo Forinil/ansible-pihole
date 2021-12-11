@@ -1,23 +1,23 @@
 ---
 
 - name: "Checking if Pi-Hole is already installed"
-  stat:
+  ansible.builtin.stat:
     path: "/usr/local/bin/pihole"
   register: pihole_binary
 
-- set_fact:
+- ansible.builtin.set_fact:
     pihole_installed: "{{ pihole_binary.stat.exists | default(false) }}"
 
 # I split this up into two files (config and install) to more easily
 # be able to re-run the config steps during testing (just comment out when:)
 
-- import_tasks: config.yml
+- ansible.builtin.import_tasks: config.yml
   when: not pihole_installed
 
 # rewrite pihole config even if pihole is already installed
 # for changes to pihole-FTL.conf to take effect the pihole DNS resolver must be restarted
 - name: Put all Pi-Hole configuration into place
-  template:
+  ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ fspath_pihole_config }}/{{ item.dest }}"
     owner: "{{ user_pihole }}"
@@ -29,12 +29,12 @@
   notify: restart pihole-FTL
 
 # note: here we change the Pihole setupVars.conf, so it needs to occur *before* install
-- import_tasks: apache-vhost.yml
+- ansible.builtin.import_tasks: apache-vhost.yml
   when: 
     - ansible_lsb.id == "Raspbian"
     - ansible_hostname == "alexandria"
 
-- import_tasks: install.yml
+- ansible.builtin.import_tasks: install.yml
   when: not pihole_installed
 
 ## note: this role does not handle updates yet

@@ -5,7 +5,7 @@
 # This means we also need to create the pihole user/group ourselves
 
 - name: "Create {{ user_pihole }} system user and group (nologin shell)"
-  user:
+  ansible.builtin.user:
     name: "{{ user_pihole }}"
     state: present
     system: yes
@@ -13,7 +13,7 @@
 
 # this task requires the user_pihole user/group to exist, fails otherwise
 - name: Create Pi-Hole configuration directory
-  file:
+  ansible.builtin.file:
     name: "{{ fspath_pihole_config }}"
     state: directory
     owner: "{{ user_pihole }}"
@@ -21,7 +21,7 @@
     mode: 0755
 
 - name: Prepare Pi-Hole configuration
-  template:
+  ansible.builtin.template:
     src: "setupVars.conf.j2"
     dest: "{{ fspath_pihole_config }}/setupVars.conf"
     owner: root

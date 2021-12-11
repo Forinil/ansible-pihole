@@ -27,3 +27,13 @@ pihole_privacy: "{{ pihole.privacylevel | default('1') }}"
 # https://docs.pi-hole.net/ftldns/blockingmode/
 # NULL is the Pi-Hole default blocking mode
 pihole_blockingmode: "NULL"
+
+# DNSMASQ_LISTENING
+# note: if this Pi-Hole is used as DNS server for devices via Tailscale,
+# listening needs to be allowed from all origins, otherwise traffic from them
+# cannot reach the Pi-Hole.
+# Allowed values and corresponding webadmin setting:
+# local  = Listen on all interfaces
+# single = Listen only on interface eth0
+# all    = Listen on all interfaces, permit all origins
+pihole_listening: "all"
