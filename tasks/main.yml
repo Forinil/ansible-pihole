@@ -1,42 +1,53 @@
 ---
 
-- name: "Checking if Pi-Hole is already installed"
-  ansible.builtin.stat:
-    path: "/usr/local/bin/pihole"
-  register: pihole_binary
-
-- ansible.builtin.set_fact:
-    pihole_installed: "{{ pihole_binary.stat.exists | default(false) }}"
-
-# I split this up into two files (config and install) to more easily
-# be able to re-run the config steps during testing (just comment out when:)
-
-- ansible.builtin.import_tasks: config.yml
-  when: not pihole_installed
-
-# rewrite pihole config even if pihole is already installed
-# for changes to pihole-FTL.conf to take effect the pihole DNS resolver must be restarted
-- name: Put all Pi-Hole configuration into place
-  ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ fspath_pihole_config }}/{{ item.dest }}"
-    owner: "{{ user_pihole }}"
-    group: root
-    mode: 0664
-  with_items: 
-    - { src: setupVars.conf.j2, dest: setupVars.conf }
-    - { src: pihole-FTL.conf.j2, dest: pihole-FTL.conf }
-  notify: restart pihole-FTL
-
-# note: here we change the Pihole setupVars.conf, so it needs to occur *before* install
-- ansible.builtin.import_tasks: apache-vhost.yml
-  when: 
-    - ansible_lsb.id == "Raspbian"
-    - ansible_hostname == "alexandria"
-
-- ansible.builtin.import_tasks: install.yml
-  when: not pihole_installed
-
 ## note: this role does not handle updates yet
 # check if pihole -up requires interactive input
 # or else for some other approach
+
+
+- name: Setup Pi-Hole
+  when: "'workstation' not in group_names"
+  block:
+
+    - name: "Checking if Pi-Hole is already installed"
+      ansible.builtin.stat:
+        path: "/usr/local/bin/pihole"
+      register: pihole_binary
+
+    - ansible.builtin.set_fact:
+        pihole_installed: "{{ pihole_binary.stat.exists | default(false) }}"
+
+    # I split this up into two files (config and install) to more easily
+    # be able to re-run the config steps during testing (just comment out when:)
+
+    - ansible.builtin.import_tasks: config.yml
+      when: not pihole_installed
+
+    # rewrite pihole config even if pihole is already installed
+    # for changes to pihole-FTL.conf to take effect the pihole DNS resolver must be restarted
+    - name: Put all Pi-Hole configuration into place
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ fspath_pihole_config }}/{{ item.dest }}"
+        owner: "{{ user_pihole }}"
+        group: root
+        mode: 0664
+      loop: 
+        - { src: setupVars.conf.j2,  dest: setupVars.conf }
+        - { src: pihole-FTL.conf.j2, dest: pihole-FTL.conf }
+      notify: restart pihole-FTL
+
+    # note: here we change the Pihole setupVars.conf, so it needs to occur *before* install
+    - ansible.builtin.import_tasks: apache-vhost.yml
+      when: 
+        - ansible_lsb.id == "Raspbian"
+        - ansible_hostname == "alexandria"
+
+    - ansible.builtin.import_tasks: install.yml
+      when: not pihole_installed
+  # END OF BLOCK
+
+
+- ansible.builtin.import_tasks: desktop-entry.yml
+  when: "'workstation' in group_names"
+  tags: desktop-entry
