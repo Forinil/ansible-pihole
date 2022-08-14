@@ -5,6 +5,6 @@ dependencies:
   - role: apache
     become: true
     tags: apache
-    when: 
+    when:
       - ansible_lsb.id == "Raspbian"
       - ansible_hostname == "alexandria"

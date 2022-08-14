@@ -37,3 +37,8 @@ pihole_blockingmode: "NULL"
 # single = Listen only on interface eth0
 # all    = Listen on all interfaces, permit all origins
 pihole_listening: "all"
+
+# default is 365 days
+# https://docs.pi-hole.net/ftldns/configfile/#maxdbdays
+# we might want to shorten this for hosts on Raspberry Pi:s
+pihole_maxdbdays: 365
