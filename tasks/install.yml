@@ -16,12 +16,12 @@
   ansible.builtin.git:
     repo: https://github.com/pi-hole/pi-hole.git
     depth: 1
-    dest: "{{ ansible_env.HOME }}/Downloads/pi-hole"
+    dest: "{{ ansible_env.HOME }}/downloads/pi-hole"
     version: master
 
 # pihole unattented install only works if /etc/pihole/setupVars.conf already exists
 # debug tip: keep track of the install progress by tailing the log-file
 - name: Run Pi-Hole install script
-  ansible.builtin.shell: "'{{ ansible_env.HOME }}/Downloads/pi-hole/automated install/basic-install.sh' --unattended >> {{ ansible_env.HOME }}/Downloads/pihole_install.log"
-  args:
-    warn: false
+  ansible.builtin.shell: >
+    '{{ ansible_env.HOME }}/downloads/pi-hole/automated install/basic-install.sh' --unattended >>
+    {{ ansible_env.HOME }}/downloads/pihole_install.log

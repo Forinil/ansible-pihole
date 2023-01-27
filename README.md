@@ -55,16 +55,15 @@ On FS1 LANs DNS server, it's currently >3GB (the entire container uses 8GB, and
 + https://docs.pi-hole.net/ftldns/configfile/
 
 
-## Refs
+## Links
 
 + https://discourse.pi-hole.net/t/using-pi-hole-docker-container-behind-reverse-proxy-without-it-being-the-default-host/39804
-
 + https://reddit.com/r/pihole/comments/5bvi29/set_up_a_webpage_on_piholes_lighttpd/
 + https://reddit.com/r/pihole/comments/6ouy8l/quick_and_dirty_multiserver_hosting_alongside/
 + https://reddit.com/r/pihole/comments/ex8vc9/run_another_site_alongside_pihole/
 + https://discourse.pi-hole.net/t/how-do-i-host-a-website-alongside-pi-hole/4187
-
 + https://github.com/pi-hole/pi-hole/issues/1785
 + https://github.com/pi-hole/pi-hole/pull/353
 + https://reddit.com/r/pihole/comments/aw5q1j/lighttpd_port_change_question/
 + https://discourse.pi-hole.net/t/how-to-edit-external-conf-to-override-lightpd-conf-default-port/15712/1
++ https://marcocetica.com/posts/wireguard_pihole/

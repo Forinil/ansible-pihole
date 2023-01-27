@@ -3,8 +3,8 @@ Name=Pi-Hole FS1 LAN
 Type=Application
 {# NOTE! When this desktop file is created, we are running from the workstation playbook,
    and thus don't have access to the pihole vars defined in luxor's hosts.yml
-   There is no easy way to expose the host-specific vars from the luxor playbook to 
-   the workstation playbook  #}
+   There is no easy way to expose the host-specific vars from the luxor playbook
+   to the workstation playbook #}
 Exec=/usr/bin/chromium-browser --new-window --app="http://{{ hostinfo.bilbeis.pihole }}/admin"
 GenericName={{ hostinfo.bilbeis.pihole }}
 Comment=
