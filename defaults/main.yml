@@ -42,3 +42,13 @@ pihole_listening: "all"
 # https://docs.pi-hole.net/ftldns/configfile/#maxdbdays
 # we might want to shorten this for hosts on Raspberry Pi:s
 pihole_maxdbdays: 365
+
+# role_constraints=true by default to restrict this role to only those tasks
+# expected to work for any user, not just my own environment
+role_constraints: true
+
+# For public roles, keep this value as-is (to allow everyone other than me to run this role as-is)
+# For solarchemist's own environment, this var is overriden in group_vars or playbook
+# This is used in logic using hostnames specific to my environment, to skip those evaluations
+# (that would otherwise break role execution for other users)
+host_restrictions: false

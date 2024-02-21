@@ -10,7 +10,7 @@
     # I wonder if this "pihole is defined" is enough as a check?
     # remember, pihole itself is just a dict of other variables
     - pihole is defined
-    - "'workstation' not in group_names"
+    - not (host_restrictions | bool) or group_names is not search("workstation")
   block:
 
     - name: "Checking if Pi-Hole is already installed"
@@ -45,7 +45,7 @@
     - ansible.builtin.import_tasks: apache-vhost.yml
       when:
         - ansible_lsb.id == "Raspbian"
-        - ansible_hostname == "alexandria"
+        - not (host_restrictions | bool) or ansible_hostname == "alexandria"
 
     - ansible.builtin.import_tasks: install.yml
       when: not pihole_installed
@@ -53,5 +53,10 @@
 
 
 - ansible.builtin.import_tasks: desktop-entry.yml
-  when: "'workstation' in group_names"
+  when: not (host_restrictions | bool) or group_names is search("workstation")
   tags: desktop-entry
+
+- ansible.builtin.import_tasks: log-git-state.yml
+  tags:
+    - log-git-state
+    - always
