@@ -1,3 +1,501 @@
-PRIVACYLEVEL={{ pihole_privacy }}
-BLOCKINGMODE={{ pihole_blockingmode }}
-MAXDBDAYS={{ pihole_maxdbdays }}
+{# https://docs.pi-hole.net/ftldns/configfile #}
+{# Comments need to start with #; to avoid issues with both PHP and bash reading
+this file https://github.com/pi-hole/pi-hole/pull/4081 #}
+
+
+{### DNS settings ###}
+
+{# BLOCKINGMODE=NULL|IP-NODATA-AAAA|IP|NXDOMAIN #}
+{# How should FTL reply to blocked queries? #}
+BLOCKINGMODE={{ pihole.ftlconfig.blockingmode | default("NULL") }}
+
+{# CNAME_DEEP_INSPECT=true|false (PR #663) #}
+{# Use this option to disable deep CNAME inspection. This might be beneficial for very low-end devices. #}
+CNAME_DEEP_INSPECT={{ pihole.ftlconfig.cname_deep_inspect | default("true") }}
+
+{# BLOCK_ESNI=true|false (PR #733) #}
+{# Encrypted Server Name Indication (ESNI) is certainly a good step into the right direction to
+enhance privacy on the web. It prevents on-path observers, including ISPs, coffee shop owners
+and firewalls, from intercepting the TLS Server Name Indication (SNI) extension by encrypting it.
+This prevents the SNI from being used to determine which websites users are visiting.
+ESNI will obviously cause issues for pixelserv-tls which will be unable to generate matching
+certificates on-the-fly when it cannot read the SNI. Cloudflare and Firefox are already enabling ESNI.
+According to the IEFT draft (link above), we can easily restore piselserv-tls's operation by
+replying NXDOMAIN to _esni. subdomains of blocked domains as this mimics a "not configured for this domain"
+behavior. #}
+BLOCK_ESNI={{ pihole.ftlconfig.block_esni | default("true") }}
+
+{# EDNS0_ECS=true|false (PR #851) #}
+{# Should we overwrite the query source when client information is provided through
+EDNS0 client subnet (ECS) information? This allows Pi-hole to obtain client IPs even
+if they are hidden behind the NAT of a router.
+This feature has been requested and discussed on Discourse, where further information
+on how to use it can be found. #}
+EDNS0_ECS={{ pihole.ftlconfig.endns0_ecs | default("true") }}
+
+{# RATE_LIMIT=1000/60 (PR #1052) #}
+{# Control FTL's query rate-limiting. Rate-limited queries are answered with a REFUSED reply
+and not further processed by FTL. The default settings for FTL's rate-limiting are
+to permit no more than 1000 queries in 60 seconds. Both numbers can be customized independently.
+It is important to note that rate-limiting is happening on a per-client basis. Other clients
+can continue to use FTL while rate-limited clients are short-circuited at the same time.
+For this setting, both numbers, the maximum number of queries within a given time, and the
+length of the time interval (seconds) have to be specified. For instance, if you want to set
+a rate limit of 1 query per hour, the option should look like RATE_LIMIT=1/3600.
+The time interval is relative to when FTL has finished starting (start of the daemon + possible
+delay by DELAY_STARTUP) then it will advance in steps of the rate-limiting interval.
+If a client reaches the maximum number of queries it will be blocked until the end of
+the current interval. This will be logged to /var/log/pihole/FTL.log, e.g.,
+"Rate-limiting 10.0.1.39 for at least 44 seconds".
+If the client continues to send queries while being blocked already and this number of queries
+during the blocking exceeds the limit the client will continue to be blocked until the end of
+the next interval (FTL.log will contain lines like
+"Still rate-limiting 10.0.1.39 as it made additional 5007 queries").
+As soon as the client requests less than the set limit, it will be unblocked
+("Ending rate-limitation of 10.0.1.39").
+Rate-limiting may be disabled altogether by setting RATE_LIMIT=0/0 (this results in the same
+behavior as before FTL v5.7). #}
+RATE_LIMIT={{ pihole.ftlconfig.rate_limit | default("1000/60") }}
+
+{# LOCAL_IPV4= (unset by default, PR #1293) #}
+{# By default, FTL determines the address of the interface a query arrived on and uses
+this address for replying to A queries with the most suitable address for the requesting client.
+This setting can be used to use a fixed, rather than the dynamically obtained, address when
+Pi-hole responds to the following names:
+  pi.hole
+  <the device's hostname>
+  pi.hole.<local domain>
+  <the device's hostname>.<local domain> #}
+LOCAL_IPV4={{ pihole.ftlconfig.local_ipv4 | default("") }}
+
+{# LOCAL_IPV6= (unset by default, PR #1293) #}
+{# Used to overwrite the IP address for local AAAA queries. See LOCAL_IPV4 for details
+on when this setting is used. #}
+LOCAL_IPV6={{ pihole.ftlconfig.local_ipv6 | default("") }}
+
+{# BLOCK_IPV4= (unset by default, PR #1293) #}
+{# By default, FTL determines the address of the interface a query arrived on and uses
+this address for replying to A queries with the most suitable address for the requesting client.
+This setting can be used to use a fixed, rather than the dynamically obtained, address when
+Pi-hole responds in the following cases:
+  `IP` blocking mode is used and this query is to be blocked
+  A regular expression with the `;reply=IP` regex extension is used #}
+BLOCK_IPV4={{ pihole.ftlconfig.block_ipv4 | default("") }}
+
+{# BLOCK_IPV6= (unset by default, PR #1293) #}
+{# Used to overwrite the IP address for blocked AAAA queries. See BLOCK_IPV4 for details
+on when this setting is used. #}
+BLOCK_IPV6={{ pihole.ftlconfig.block_ipv6 | default("") }}
+
+{# REPLY_WHEN_BUSY=DROP|ALLOW|BLOCK|REFUSE (PR #1156 & PR #1341) #}
+{# When the gravity database is locked/busy, how should Pi-hole handle queries?
+  `ALLOW` - allow all queries when the database is busy
+  `BLOCK` - block all queries when the database is busy. This uses the configured BLOCKINGMODE (default NULL)
+  `REFUSE` - refuse all queries which arrive while the database is busy
+  `DROP` - just drop the queries, i.e., never reply to them at all.
+Despite REFUSE sounding similar to DROP, it turned out that many clients will just
+immediately retry, causing up to several thousands of queries per second.
+This does not happen in DROP mode. #}
+REPLY_WHEN_BUSY={{ pihole.ftlconfig.reply_when_busy | default("DROP") }}
+
+{# MOZILLA_CANARY=true|false (PR #1148) #}
+{# Should Pi-hole always reply with NXDOMAIN to A and AAAA queries of use-application-dns.net
+to disable Firefox's automatic DNS-over-HTTPS? This is following the recommendation on
+https://support.mozilla.org/en-US/kb/configuring-networks-disable-dns-over-https
+https://support.mozilla.org/en-US/kb/canary-domain-use-application-dnsnet
+If Pihole returns NXDOMAIN for this canary domain, this will signal Firefox to
+disable application DNS, i.e., DNS-over-HTTPS
+TRUE ensures this canary domain resolves as NXDOMAIN (disabling DoH) #}
+MOZILLA_CANARY={{ pihole.ftlconfig.mozilla_canary | default("true") }}
+
+{# BLOCK_TTL=2 (PR #1173) #}
+{# FTL's internal TTL to be handed out for blocked queries. This setting allows users
+to select a value different from the dnsmasq config option `local-ttl`. This seems useful
+in context of locally used hostnames that are known to stay constant over long times
+(printers, etc.). Note that large values may render whitelisting ineffective due to
+client-side caching of blocked queries. #}
+BLOCK_TTL={{ pihole.ftlconfig.block_ttl | default("2") }}
+
+{# BLOCK_ICLOUD_PR=true|false (PR #1171) #}
+{# Should Pi-hole always reply with NXDOMAIN to A and AAAA queries of mask.icloud.com
+and mask-h2.icloud.com to disable Apple's iCloud Private Relay to prevent Apple devices
+from bypassing Pi-hole? This is following the recommendation on
+https://developer.apple.com/support/prepare-your-network-for-icloud-private-relay #}
+BLOCK_ICLOUD_PR={{ pihole.ftlconfig.block_icloud_pr | default("true") }}
+
+
+
+{### Statistics settings ###}
+
+{# MAXLOGAGE=24.0 #}
+{# Up to how many hours of queries should be imported from the database and logs?
+Values greater than the hard-coded maximum of 24h need a locally compiled FTL with
+a changed compile-time value. #}
+MAXLOGAGE={{ pihole.ftlconfig.maxlogage | default("24.0") }}
+
+{# PRIVACYLEVEL=0|1|2|3 #}
+{# Which privacy level is used?
+https://docs.pi-hole.net/ftldns/privacylevels
+  0 = Show everything and record everything
+  1 = Hide domains: Display and store all domains as "hidden"
+      This disables the Top Domains and Top Ads tables on the dashboard
+  2 = Hide domains and clients: Display and store all domains as "hidden" and all clients as "0.0.0.0"
+      This disables all tables on the dashboard
+  3 = Anonymous mode: This disables basically everything except the live anonymous statistics
+      No history is saved at all to the database, and nothing is shown in the query log.
+  4 = No Statistics mode: This disables all statistics processing. #}
+PRIVACYLEVEL={{ pihole.ftlconfig.privacylevel | default("0") }}
+
+{# IGNORE_LOCALHOST=no|yes #}
+{# Should FTL ignore queries coming from the local machine?
+This setting turns on/off processing of queries coming from localhost, it does not change
+network settings. Note that FTL settings only affect FTL.
+By not processing the query, the query and stats do not get shown on the web interface.
+The query is still resolved however.
+https://github.com/pi-hole/pi-hole/issues/2756 #}
+IGNORE_LOCALHOST={{ pihole.ftlconfig.ignore_localhost | default("no") }}
+
+{# AAAA_QUERY_ANALYSIS=yes|no #}
+{# Should FTL analyze AAAA queries? The DNS server will handle AAAA queries the same way,
+regardless of this setting. All this does is ignoring AAAA queries when computing the
+statistics of Pi-hole. This setting is considered obsolete and will be removed in a future version. #}
+AAAA_QUERY_ANALYSIS= {{ phole.ftlconfig.aaaa_query_analysis | default("yes") }}
+
+{# ANALYZE_ONLY_A_AND_AAAA=false|true #}
+{# Should FTL only analyze A and AAAA queries? #}
+ANALYZE_ONLY_A_AND_AAAA={{ pihole.ftlconfig.analyze_only_a_and_aaaa | default("false") }}
+
+{# SHOW_DNSSEC=true|false #}
+{# Should FTL analyze and include automatically generated DNSSEC queries in the Query Log? #}
+SHOW_DNSSEC={{ pihole.ftlconfig.show_dnssec | default("true") }}
+
+
+
+{### Other settings ###}
+
+{# SOCKET_LISTENING=localonly|all #}
+{# Listen only for local socket connections or permit all connections #}
+SOCKET_LISTENING={{ pihole.ftlconfig.socket_listening | default("localonly") }}
+
+{# FTLPORT=4711 #}
+{# On which port should FTL be listening? #}
+FTLPORT={{ pihole.ftlconfig.ftlport | default("4711") }}
+
+{# RESOLVE_IPV6=yes|no #}
+{# Should FTL try to resolve IPv6 addresses to hostnames? #}
+RESOLVE_IPV6={{ pihole.ftlconfig.resolve_ipv6 | default("yes") }}
+
+{# RESOLVE_IPV4=yes|no #}
+{# Should FTL try to resolve IPv4 addresses to hostnames? #}
+RESOLVE_IPV4={{ pihole.ftlconfig.resolve_ipv4 | default("yes") }}
+
+{# PIHOLE_PTR=PI.HOLE|HOSTNAME|HOSTNAMEFQDN|NONE (PR #1111, #1164) #}
+{# Controls whether and how FTL will reply with for address for which a local interface exists.
+Valid options are:
+  PI.HOLE (the default) respond with pi.hole
+  HOSTNAME serve the machine's global hostname
+  HOSTNAMEFQDN serve the machine's global hostname as fully qualified domain by adding
+    the local suffix. See note below.
+  NONE Pi-hole will not respond automatically on PTR requests to local interface addresses.
+    Ensure pi.hole and/or hostname records exist elsewhere.
+Note about HOSTNAMEFQDN: If no local suffix has been defined, FTL appends the local domain
+`.no_fqdn_available`. In this case you should either add domain=whatever.com to a custom
+config file inside /etc/dnsmasq.d/ (to set whatever.com as local domain) or use domain=# which
+will try to derive the local domain from /etc/resolv.conf (or whatever is set with resolv-file,
+when multiple search directives exist, the first one is used). #}
+PIHOLE_PTR={{ pihole.ftlconfig.pihole_ptr | default("PI.HOLE") }}
+
+{# DELAY_STARTUP=0 (PR #716, PR 1349) #}
+{# During startup, in some configurations, network interfaces appear only late during
+system startup and are not ready when FTL tries to bind to them. Therefore, you may
+want FTL to wait a given amount of time before trying to start the DNS revolver.
+This setting takes any integer value between 0 and 300 seconds. To prevent delayed
+startup while the system is already running and FTL is restarted, the delay only
+takes place within the first 180 seconds (hard-coded) after booting. #}
+DELAY_STARTUP= {{ pihole.ftlconfig.delay_startup | default("0") }}
+
+{# NICE=-10 (PR #798) #}
+{# Can be used to change the niceness of Pi-hole FTL. Defaults to -10 and can be disabled altogether
+by setting a value of -999. The nice value is an attribute that can be used to influence
+the CPU scheduler to favor or disfavor a process in scheduling decisions. The range of the nice
+value varies across UNIX systems. On modern Linux, the range is -20 (high priority = not very nice
+to other processes) to +19 (low priority). #}
+NICE={{ pihole.ftlconfig.nice | default("-10") }}
+
+{# MAXNETAGE=[MAXDBDAYS] (PR #871) #}
+{# IP addresses (and associated host names) older than the specified number of days are removed
+to avoid dead entries in the network overview table. This setting defaults to the same value
+as MAXDBDAYS above but can be changed independently if needed. #}
+MAXNETAGE={{ pihole.ftlconfig.maxnetage | default(pihole.ftlconfig.maxdbdays) }}
+
+{# NAMES_FROM_NETDB=true|false (PR #784) #}
+{# Control whether FTL should use the fallback option to try to obtain client names
+from checking the network table. This behavior can be disabled with this option.
+Assume an IPv6 client without a host name. However, the network table knows - through
+the client's MAC address - that this is the same device where we have a host name
+for another IP address (e.g., a DHCP server managed IPv4 address). In this case, we use
+the host name associated to the other address as this is the same device. #}
+NAMES_FROM_NETDB={{ pihole.ftlconfig.names_from_netdb | default("true") }}
+
+{# REFRESH_HOSTNAMES=IPV4|ALL|UNKNOWN|NONE (PR #953) #}
+{# With this option, you can change how (and if) hourly PTR requests are made to check
+for changes in client and upstream server hostnames. The following options are available:
+  REFRESH_HOSTNAMES=IPV4 - Do the hourly PTR lookups only for IPv4 addresses This is
+    the new default since Pi-hole FTL v5.3.2. It should resolve issues with more and more
+    very short-lived PE IPv6 addresses coming up in a lot of networks.
+  REFRESH_HOSTNAMES=ALL - Do the hourly PTR lookups for all addresses. This is the same
+    as what we're doing with FTL v5.3(.1). This can create a lot of PTR queries for those
+    with many IPv6 addresses in their networks.
+  REFRESH_HOSTNAMES=UNKNOWN - Only resolve unknown hostnames. Already existing hostnames
+    are never refreshed, i.e., there will be no PTR queries made for clients whose hostnames
+    are known. This also means that known hostnames will not be updated once known.
+  REFRESH_HOSTNAMES=NONE - Don't do any hourly PTR lookups. This means we look host names
+    up exactly once (when we first see a client) and never again. You may miss future changes
+    of host names. #}
+REFRESH_HOSTNAMES={{ pihole.ftlconfig.refresh_hostnames | default("IPV4") }}
+
+{# PARSE_ARP_CACHE=true|false (PR #445) #}
+{# This setting can be used to disable ARP cache processing. When disabled, client identification
+and the network table will stop working reliably. #}
+PARSE_ARP_CACHE={{ pihole.ftlconfig.parse_arp_cache | default("true") }}
+
+{# CHECK_LOAD=true|false (PR #1249) #}
+{# Pi-hole is very lightweight on resources. Nevertheless, this does not mean that you should run
+Pi-hole on a server that is otherwise extremely busy as queuing on the system can lead to
+unnecessary delays in DNS operation as the system becomes less and less usable as the system load
+increases because all resources are permanently in use. To account for this, FTL regularly checks
+the system load. To bring this to your attention, FTL warns about excessive load when the 15 minute
+system load average exceeds the number of cores.
+This check can be disabled with this setting. #}
+CHECK_LOAD={{ pihole.ftlconfig.check_load | default("true") }}
+
+{# CHECK_SHMEM=90 (PR #1249) #}
+{# FTL stores history in shared memory to allow inter-process communication with forked
+dedicated TCP workers. If FTL runs out of memory, it cannot continue to work as queries
+cannot be analyzed any further. Hence, FTL checks if enough shared memory is available
+on your system and warns you if this is not the case.
+By default, FTL warns if the shared-memory usage exceeds 90%. You can set any integer limit
+between 0 to 100 (interpreted as percentages) where 0 means that checking of shared-memory
+usage is disabled. #}
+CHECK_SHMEM={{ pihole.ftlconfig.check_shmem | default("90") }}
+
+{# CHECK_DISK=90 (PR #1249) #}
+{# FTL stores its long-term history in a database file on disk.
+https://docs.pi-hole.net/database
+Furthermore, FTL stores log files
+https://docs.pi-hole.net/ftldns/configfile/#file_LOGFILE
+By default, FTL warns if usage of the disk holding any crucial file exceeds 90%.
+You can set any integer limit between 0 to 100 (interpreted as percentages) where
+0 means that checking of disk usage is disabled. #}
+CHECK_DISK={{ pihole.ftlconfig.check_disk | default("90") }}
+
+
+
+{### Long-term database settings ###}
+{# https://docs.pi-hole.net/database #}
+
+{# DBIMPORT=yes|no #}
+{# Should FTL load information from the database on startup to be aware of
+the most recent history? #}
+DBIMPORT={{ pihole.ftlconfig.dbimport | default("yes") }}
+
+{# MAXDBDAYS=365 #}
+{# How long should queries be stored in the database?
+Setting this to 0 disables the database. #}
+MAXDBDAYS={{ pihole.ftlconfig.maxdbdays | default("365") }}
+
+{# DBINTERVAL=1.0 #}
+{# How often do we store queries in FTL's database [minutes]? #}
+DBINTERVAL={{ pihole.ftlconfig.dbinterval | default("1.0") }}
+
+{# DBFILE=/etc/pihole/pihole-FTL.db #}
+{# Specify the path and filename of FTL's SQLite3 long-term database. Setting this
+to `DBFILE=` disables the database altogether. #}
+DBFILE={{ pihole.ftlconfig.dbfile | default("/etc/pihole/pihole-FTL.db") }}
+
+
+
+{### File options ###}
+
+{# LOGFILE=/var/log/pihole/FTL.log #}
+{# The location of FTL's log file. If you want to move the log file to a different place,
+also consider this FAQ article.
+https://discourse.pi-hole.net/t/moving-the-pi-hole-log-to-another-location-device/2041 #}
+LOGFILE={{ pihole.ftlconfig.logfile | default("/var/log/pihole/FTL.log") }}
+
+{# PIDFILE=/run/pihole-FTL.pid #}
+{# The file which contains the PID of FTL's main process. #}
+PIDFILE={{ pihole.ftlconfig.pidfile | default("/run/pihole-FTL.pid") }}
+
+{# SOCKETFILE=/run/pihole/FTL.sock #}
+{# The file containing the socket FTL's API is listening on. #}
+SOCKETFILE={{ pihole.ftlconfig.socketfile | default("/run/pihole/FTL.sock") }}
+
+{# SETUPVARSFILE=/etc/pihole/setupVars.conf #}
+{# The config file of Pi-hole containing, e.g., the current blocking status (do not change). #}
+SETUPVARSFILE={{ pihole.ftlconfig.setupvarsfile | default(pihole.path.config ~ "/setupVars.conf") }}
+
+{# MACVENDORDB=/etc/pihole/macvendor.db #}
+{# The database containing MAC -> Vendor information for the network table. #}
+MACVENDORDB={{ pihole.ftlconfig.macvendordb | default(pihole.path.config ~ "/macvendor.db") }}
+
+{# GRAVITYDB=/etc/pihole/gravity.db #}
+{# Specify path and filename of FTL's SQLite3 gravity database. This database contains
+all domains relevant for Pi-hole's DNS blocking #}
+GRAVITYDB={{ pihole.ftlconfig.gravitydb | default(pihole.path.config ~ "/gravity.db") }}
+
+
+
+{### Debugging options ###}
+
+{# DEBUG_ALL=false|true #}
+{# Enable all debug flags. If this is set to true, all other debug config options are ignored. #}
+DEBUG_ALL={{ pihole.ftlconfig.debug_all | default("false") }}
+
+{# DEBUG_DATABASE=false|true #}
+{# Print debugging information about database actions. This prints performed SQL statements
+as well as some general information such as the time it took to store the queries and how
+many have been saved to the database. #}
+DEBUG_DATABASE={{ pihole.ftlconfig.debug_database | default("false") }}
+
+{# DEBUG_NETWORKING=false|true #}
+{# Prints a list of the detected interfaces on the startup of pihole-FTL. Also, prints
+whether these interfaces are IPv4 or IPv6 interfaces. #}
+DEBUG_NETWORKING={{ pihole.ftlconfig.debug_networking | default("false") }}
+
+{# DEBUG_EDNS0=false|true #}
+{# Print debugging information about received EDNS(0) data. #}
+DEBUG_EDNS0={{ pihole.ftlconfig.debug_edns0 | default("false") }}
+
+{# DEBUG_LOCKS=false|true #}
+{# Print information about shared memory locks. Messages will be generated when waiting,
+obtaining, and releasing a lock. #}
+DEBUG_LOCKS={{ pihole.ftlconfig.debug_locks | default("false") }}
+
+{# DEBUG_QUERIES=false|true #}
+{# Print extensive query information (domains, types, replies, etc.). This has always
+been part of the legacy debug mode of pihole-FTL. #}
+DEBUG_QUERIES={{ pihole.ftlconfig.debug_queries | default("false") }}
+
+{# DEBUG_FLAGS=false|true #}
+{# Print flags of queries received by the DNS hooks. Only effective when DEBUG_QUERIES
+is enabled as well. #}
+DEBUG_FLAGS={{ pihole.ftlconfig.debug_flags | default("false") }}
+
+{# DEBUG_SHMEM=false|true #}
+{# Print information about shared memory buffers. Messages are either about creating
+or enlarging shmem objects or string injections. #}
+DEBUG_SHMEM={{ pihole.ftlconfig.debug_shmem | default("false") }}
+
+{# DEBUG_GC=false|true #}
+{# Print information about garbage collection (GC): What is to be removed, how many
+have been removed and how long did GC take. #}
+DEBUG_GC={{ pihole.ftlconfig.debug_gc | default("false") }}
+
+{# DEBUG_ARP=false|true #}
+{# Print information about ARP table processing: How long did parsing take, whether
+read MAC addresses are valid, and if the macvendor.db file exists. #}
+DEBUG_ARP={{ pihole.ftlconfig.debug_arp | default("false") }}
+
+{# DEBUG_REGEX=false|true #}
+{# Controls if FTLDNS should print extended details about regex matching into FTL.log.
+https://docs.pi-hole.net/regex/overview #}
+DEBUG_REGEX={{ pihole.ftlconfig.debug_regex | default("false") }}
+
+{# DEBUG_API=false|true #}
+{# Print extra debugging information during telnet API calls. Currently only used to
+send extra information when getting all queries. #}
+DEBUG_API={{ pihole.ftlconfig.debug_api | default("false") }}
+
+{# DEBUG_OVERTIME=false|true #}
+{# Print information about overTime memory operations, such as initializing or moving
+overTime slots. #}
+DEBUG_OVERTIME={{ pihole.ftlconfig.debug_overtime | default("false") }}
+
+{# DEBUG_STATUS=false|true #}
+{# Print information about status changes for individual queries. This can be useful
+to identify unexpected unknown queries. #}
+DEBUG_STATUS={{ pihole.ftlconfig.debug_status | default("false") }}
+
+{# DEBUG_CAPS=false|true #}
+{# Print information about capabilities granted to the pihole-FTL process. The current
+capabilities are printed on receipt of SIGHUP, i.e., the current set of capabilities
+can be queried without restarting pihole-FTL (by setting DEBUG_CAPS=true and thereafter
+sending killall -HUP pihole-FTL). #}
+DEBUG_CAPS={{ pihole.ftlconfig.debug_caps | default("false") }}
+
+{# DEBUG_DNSMASQ_LINES=false|true #}
+{# Print file and line causing a dnsmasq event into FTL's log files. This is handy to
+implement additional hooks missing from FTL. #}
+DEBUG_DNSMASQ_LINES={{ pihole.ftlconfig.debug_dnsmasq_lines | default("false") }}
+
+{# DEBUG_VECTORS=false|true (PR #725) #}
+{# FTL uses dynamically allocated vectors for various tasks. This config option enables
+extensive debugging information such as information about allocation, referencing,
+deletion, and appending. #}
+DEBUG_VECTORS={{ pihole.ftlconfig.debug_vectors | default("false") }}
+
+{# DEBUG_RESOLVER=false|true (PR #728) #}
+{# Extensive information about hostname resolution like which DNS servers are used in
+the first and second hostname resolving tries (only affecting internally generated PTR queries). #}
+DEBUG_RESOLVER={{ pihole.ftlconfig.debug_resolver | default("false") }}
+
+{# DEBUG_EDNS0=false|true (PR #851) #}
+{# Verbose logging during EDNS(0) header analysis. #}
+DEBUG_EDNS0={{ pihole.ftlconfig.debug_edns0 | default("false") }}
+
+{# DEBUG_CLIENTS=false|true (PR #762) #}
+{# Log various important client events such as change of interface (e.g., client switching
+from WiFi to wired or VPN connection), as well as extensive reporting about how clients
+were assigned to its groups. #}
+DEBUG_CLIENTS={{ pihole.ftlconfig.debug_clients | default("false") }}
+
+{# DEBUG_ALIASCLIENTS=false|true (PR #880) #}
+{# Log information related to alias-client processing. #}
+DEBUG_ALIASCLIENTS={{ pihole.ftlconfig.debug_aliasclients | default("false") }}
+
+{# DEBUG_EVENTS=false|true (PR #881) #}
+{# Log information regarding FTL's embedded event handling queue. #}
+DEBUG_EVENTS={{ pihole.ftlconfig.debug_events | default("false") }}
+
+{# DEBUG_HELPER=false|true (PR #914) #}
+{# Log information about script helpers, e.g., due to dhcp-script. #}
+DEBUG_HELPER={{ pihole.ftlconfig.debug_helper | default("false") }}
+
+{# ADDR2LINE=true|false (PR #774) #}
+{# Should FTL translate its own stack addresses into code lines during the bug backtrace?
+This improves the analysis of crashed significantly. It is recommended to leave
+the option enabled. This option should only be disabled when addr2line is known to
+not be working correctly on the machine because, in this case, the malfunctioning
+addr2line can prevent from generating any backtrace at all. #}
+ADDR2LINE={{ pihole.ftlconfig.addr2line | default("true") }}
+
+{# DEBUG_EXTRA=false|true (PR #994) #}
+{# Temporary flag that may print additional information. This debug flag is meant to
+be used whenever needed for temporary investigations. The logged content may change
+without further notice at any time. #}
+DEBUG_EXTRA={{ pihole.ftlconfig.debug_extra | default("false") }}
+
+
+
+{### Deprecated options ###}
+
+{# REPLY_ADDR4= (unset by default, PR #965) #}
+{# This option is deprecated and may be removed in future versions, please use
+BLOCK_IPV4 and LOCAL_IPV4 instead
+If neither BLOCK_IPV4 nor LOCAL_IPV4 are set, this setting is used to set both of them.
+If either of the two is set, this setting is ignored altogether. #}
+REPLY_ADDR4={{ pihole.ftlconfig.reply_addr4 | default("") }}
+
+{# REPLY_ADDR6= (unset by default, PR #965) #}
+{# This option is deprecated and may be removed in future versions, please use
+BLOCK_IPV6 and LOCAL_IPV6 instead
+If neither BLOCK_IPV6 nor LOCAL_IPV6 are set, this setting is used to set both of them.
+If either of the two is set, this setting is ignored altogether. #}
+REPLY_ADDR6={{ pihole.ftlconfig.reply_addr6 | default("") }}
+
+{# PORTFILE=/run/pihole-FTL.port #}
+{# This option is deprecated as FTL does not write any port file anymore.
+Please parse pihole-FTL.conf if you need to check if a custom API port is set.
+The file containing the port FTL's API is listening on. #}
+PORTFILE={{ pihole.ftlconfig.portfile | default("/run/pihole-FTL.port") }}

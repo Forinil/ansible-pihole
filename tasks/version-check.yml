@@ -1,0 +1,31 @@
+---
+
+# After running all blocks in this file, we may expect to have the following variables:
+# + pihole_version, containing version string, e.g., v5.17.3
+
+- name: Find latest pihole version
+  when: pihole.repo.version == "latest"
+  block:
+
+    - name: Query Github API for the latest pihole release
+      ansible.builtin.uri:
+        method: GET
+        status_code: 200
+        url: "https://api.github.com/repos/{{ pihole.repo.gh_slug }}/releases/latest"
+      run_once: true
+      delegate_to: localhost
+      register: pihole_uri
+
+    - name: Get latest pihole version
+      ansible.builtin.set_fact:
+        pihole_version: "{{ pihole_uri.json.tag_name }}" # v5.17.3
+  # END OF BLOCK
+
+
+- name: "Use user-specified version"
+  when: pihole.repo.version != "latest"
+  block:
+
+    - ansible.builtin.set_fact:
+        pihole_version: "{{ pihole.repo.version }}" # v5.17.3
+  # END OF BLOCK

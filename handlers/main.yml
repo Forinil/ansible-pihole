@@ -1,10 +1,16 @@
 ---
 
-- name: Restart Pi-Hole DNS resolver
-  systemd:
+- name: Restart Pi-Hole FTL
+  ansible.builtin.systemd:
     name: pihole-FTL.service
     state: restarted
   listen: restart pihole-FTL
+
+# rather than restarting the systemd job, use pihole's
+# builtin ability to apply changed configuration
+- name: Reconfigure Pi-Hole subsystems
+  ansible.builtin.command: "{{ pihole.path.bin }}/pihole -r"
+  listen: reconfigure pihole
 
 - name: Update desktop entry database
   ansible.builtin.command: >

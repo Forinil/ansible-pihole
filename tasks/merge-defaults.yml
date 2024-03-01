@@ -1,0 +1,35 @@
+---
+
+# "pihole" variable should be defined somehwere with higher priority, such
+# as in group_vars or play vars
+
+# if role variable is defined, merge it with "*_default"
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/combine_filter.html
+- name: Merge default variable
+  run_once: true
+  when: pihole is defined
+  tags: default
+  ansible.builtin.set_fact:
+    pihole: "{{ pihole_default | combine(pihole, recursive=True) }}"
+  # no log to avoid printing hashed password to disk
+  no_log: true
+
+# if "pihole" is not defined, simply assign "pihole_default" -> "pihole"
+- name: Use pihole default variable
+  run_once: true
+  when: pihole is not defined
+  tags: default
+  ansible.builtin.set_fact:
+    pihole: "{{ pihole_default }}"
+  # no log to avoid printing hashed password to disk
+  no_log: true
+
+- name: Inspect "pihole" variable
+  debug:
+    var: pihole
+  when: pihole_testing | bool
+
+- name: Pausing to highlight merge result
+  ansible.builtin.wait_for:
+    timeout: 5
+  when: pihole_testing | bool

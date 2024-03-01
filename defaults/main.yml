@@ -1,47 +1,45 @@
 ---
 
-user_pihole: "pihole"
-group_pihole: "pihole"
+pihole_default:
+  repo:
+    remote: "https://github.com/pi-hole/pi-hole.git"
+    # use "version: latest" to get the latest *release*, or specify a version
+    # to install, e.g., "version: 'v5.17.3'"
+    version: "latest"
+    # I don't like using /tmp because it requires running git as root
+    # most suitable "tmp"-like path under user's HOME is ~/.cache/ I guess
+    path: "{{ ansible_env.HOME }}/.cache/pi-hole"
+    gh_slug: "pi-hole/pi-hole"
+  user: pihole
+  group: pihole
+  path:
+    # you should probably not change the config path
+    config: /etc/pihole
+    bin: /usr/local/bin
+    # is there a better name than "scripts" for this path?
+    scripts: /opt/pihole
+    web_interface: /var/www/html/admin
+    web_directory: /var/www/html/pihole
 
-fspath_pihole_config: "/etc/pihole"
+  # see ./templates/setupVars.conf.j2 for settings and their descriptions
+  setupVars:
+    webpassword: "somelongandsecretstringofyourown"
+    dns_servers:
+      - "1.1.1.1"
+      - "8.8.8.8"
 
-# settings for Pi-Hole when using Apache webserver
-pihole_wwwroot: "/var/www/html/admin"
+  # https://docs.pi-hole.net/ftldns/configfile
+  # see ./templates/pihole-FTL.conf.j2 for settings and their descriptions
+  ftlconfig:
+    maxdbdays: "365"
+    privacylevel: "1"
+    mozilla_canary: "true"
 
-# pihole_privacylevel
-# 0 = Show everything and record everything
-#     Gives maximum amount of statistics
-# 1 = Hide domains: Display and store all domains as "hidden"
-#     This disables the Top Domains and Top Ads tables on the dashboard
-# 2 = Hide domains and clients: Display and store all domains as "hidden" and all clients as "0.0.0.0"
-#     This disables all tables on the dashboard
-# 3 = Anonymous mode: This disables basically everything except the live anonymous statistics
-#     No history is saved at all to the database, and nothing is shown in the query log. Also, there are no top item lists.
-# 4 = No Statistics mode: This disables all statistics processing. Even the query counters will not be available.
-#     Note that regex blocking is not available when query analyzing is disabled.
-#     Additionally, you can disable logging to the file /var/log/pihole.log using `sudo pihole logging off`.
-### NOTE: set pihole_privacylevel in the hosts file for each host
-###       This line resets to default value if not set in hosts file
-pihole_privacy: "{{ pihole.privacylevel | default('1') }}"
+  # settings for Pi-Hole if using Apache webserver (because I run Heimdall alongside Pi-Hole
+  # and cannot be bothered to learn to configure lighttpd). Note that in this case
+  # Apache will be installed and lighttpd will be uninstalled.
+  apache_enabled: false
 
-# https://docs.pi-hole.net/ftldns/blockingmode/
-# NULL is the Pi-Hole default blocking mode
-pihole_blockingmode: "NULL"
-
-# DNSMASQ_LISTENING
-# note: if this Pi-Hole is used as DNS server for devices via Tailscale,
-# listening needs to be allowed from all origins, otherwise traffic from them
-# cannot reach the Pi-Hole.
-# Allowed values and corresponding webadmin setting:
-# local  = Listen on all interfaces
-# single = Listen only on interface eth0
-# all    = Listen on all interfaces, permit all origins
-pihole_listening: "all"
-
-# default is 365 days
-# https://docs.pi-hole.net/ftldns/configfile/#maxdbdays
-# we might want to shorten this for hosts on Raspberry Pi:s
-pihole_maxdbdays: 365
 
 # role_constraints=true by default to restrict this role to only those tasks
 # expected to work for any user, not just my own environment
@@ -52,3 +50,13 @@ role_constraints: true
 # This is used in logic using hostnames specific to my environment, to skip those evaluations
 # (that would otherwise break role execution for other users)
 host_restrictions: false
+
+# set pihole_testing to true to enable debug messages
+# easiest via --extra-vars "{pihole_testing: true}"
+# WARNING, enabling this will print the password on-screen and in the log
+# during the 'Inspect "pihole" variable' task
+pihole_testing: false
+
+# meant for debugging use
+# --extra-vars "{pihole_force_install: true}"
+pihole_force_install: false

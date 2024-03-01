@@ -1,62 +1,70 @@
 ---
 
-## note: this role does not handle updates yet
-# check if pihole -up requires interactive input
-# or else for some other approach
+- ansible.builtin.import_tasks: merge-defaults.yml
+  tags:
+    - default
+    - backups-only
+    - config-only
+    - updates-only
+
+- ansible.builtin.import_tasks: version-check.yml
+  tags:
+    - backups-only
+    - config-only
+    - updates-only
+
+- ansible.builtin.import_tasks: assert.yml
+  tags:
+    - assert
+    - backups-only
+    - config-only
+    - updates-only
 
 
 - name: Setup Pi-Hole
-  when:
-    # I wonder if this "pihole is defined" is enough as a check?
-    # remember, pihole itself is just a dict of other variables
-    - pihole is defined
-    - not (host_restrictions | bool) or group_names is not search("workstation")
+  when: not (host_restrictions | bool) or group_names is not search("workstation")
   block:
 
     - name: "Checking if Pi-Hole is already installed"
       ansible.builtin.stat:
-        path: "/usr/local/bin/pihole"
+        path: "{{ pihole.path.bin }}/pihole"
       register: pihole_binary
+      tags: updates-only
 
     - ansible.builtin.set_fact:
         pihole_installed: "{{ pihole_binary.stat.exists | default(false) }}"
+      tags: updates-only
 
-    # I split this up into two files (config and install) to more easily
-    # be able to re-run the config steps during testing (just comment out when:)
-
-    - ansible.builtin.import_tasks: config.yml
-      when: not pihole_installed
-
-    # rewrite pihole config even if pihole is already installed
-    # for changes to pihole-FTL.conf to take effect the pihole DNS resolver must be restarted
-    - name: Put all Pi-Hole configuration into place
-      ansible.builtin.template:
-        src: "{{ item.src }}"
-        dest: "{{ fspath_pihole_config }}/{{ item.dest }}"
-        owner: "{{ user_pihole }}"
-        group: root
-        mode: 0664
-      loop:
-        - { src: setupVars.conf.j2,  dest: setupVars.conf }
-        - { src: pihole-FTL.conf.j2, dest: pihole-FTL.conf }
-      notify: restart pihole-FTL
-
-    # note: here we change the Pihole setupVars.conf, so it needs to occur *before* install
-    - ansible.builtin.import_tasks: apache-vhost.yml
-      when:
-        - ansible_lsb.id == "Raspbian"
-        - not (host_restrictions | bool) or ansible_hostname == "alexandria"
+    - ansible.builtin.import_tasks: configure.yml
 
     - ansible.builtin.import_tasks: install.yml
-      when: not pihole_installed
+
+    - ansible.builtin.import_tasks: update.yml
+      when:
+        - pihole_installed | bool
+        # don't update if user has set a specific version
+        - pihole.repo.version == "latest"
+      tags: updates-only
+
+    - ansible.builtin.import_tasks: reconfigure.yml
+      tags: config-only
+
+    - ansible.builtin.import_tasks: apache-vhost.yml
+      when: pihole.apache_enabled | bool
   # END OF BLOCK
 
 
+# Note that I consciously decided not to use "host_restrictions" here to avoid
+# polluting anyone's server with a spurious desktop launcher.
+# I expect this task to be skipped for you (unless you happen to have placed your
+# Pi-Hole host in a group containing the string "workstation").
 - ansible.builtin.import_tasks: desktop-entry.yml
-  when: not (host_restrictions | bool) or group_names is search("workstation")
+  when: group_names is search("workstation")
   tags: desktop-entry
 
 - ansible.builtin.import_tasks: log-git-state.yml
   tags:
     - log-git-state
-    - always
+    - backups-only
+    - config-only
+    - updates-only

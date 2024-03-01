@@ -1,5 +1,13 @@
 ---
 
+# Here I use "dependencies" in a loosely defined fashion
+# most of these packages would already be expected to be installed on any Ubuntu system
+# but, does not hurt to be thorough
+- name: Install dependencies (apt packages)
+  ansible.builtin.apt:
+    name: "{{ pihole_apt_dependencies }}"
+    state: present
+
 # https://github.com/gsemet/ansible-rpi-pihole/blob/master/roles/pi/tasks/main.yml
 # https://gist.github.com/bendews/e09edfc60e581ec4c686c4b70297f543
 # https://github.com/Freekers/automated-pihole/blob/master/playbook.yml
@@ -14,14 +22,51 @@
 
 - name: "Clone the Pi-Hole repo"
   ansible.builtin.git:
-    repo: https://github.com/pi-hole/pi-hole.git
-    depth: 1
-    dest: "{{ ansible_env.HOME }}/downloads/pi-hole"
-    version: master
+    repo: "{{ pihole.repo.remote }}"
+    dest: "{{ pihole.repo.path }}"
+    version: "{{ pihole_version }}"
+  become: true
+  become_user: "{{ ansible_env.USER }}"
+  register: pihole_repo
 
-# pihole unattented install only works if /etc/pihole/setupVars.conf already exists
-# debug tip: keep track of the install progress by tailing the log-file
-- name: Run Pi-Hole install script
-  ansible.builtin.shell: >
-    '{{ ansible_env.HOME }}/downloads/pi-hole/automated install/basic-install.sh' --unattended >>
-    {{ ansible_env.HOME }}/downloads/pihole_install.log
+
+# what happens if we run the install script with a pre-existing pihole on the system?
+# is it overwritten without complaints from the installer?
+# what if the repo has an older version than the installed pihole?
+# would it perhaps by easiest to never allow install script to run if pihole is already installed?
+# on my machine the install script produced a never-ending output of "y" lines immediately after
+# successfully restarting the pihole-FTL service (if output was printed to file it quickly
+# filled the available disk space). Did this happen because Pi-Hole was already installed?
+- name: Run Pi-Hole installation script in unattended mode
+  when:
+    - (pihole_repo.changed | bool) or (pihole_force_install | bool)
+    # but not if pihole is already installed, in that case let the updater do its job
+    - not (pihole_installed | bool)
+  block:
+
+    # pihole unattented install only works if /etc/pihole/setupVars.conf already exists
+    # debug tip: keep track of the install progress by tailing the log-file on the host in question
+    - name: Run Pi-Hole installation script
+      ansible.builtin.shell: >
+        '{{ pihole.repo.path }}/automated install/basic-install.sh' --unattended >>
+        {{ pihole.repo.path }}/pihole_install.log
+
+    # can we create a task that tails -f the log file and then quits (continues to next task)
+    # once no new tail output for X seconds?
+    # https://stackoverflow.com/questions/33663357/how-to-continuously-tail-remote-files-using-ansible
+    # https://github.com/ansible/ansible/issues/4870
+    # https://github.com/ansible/ansible/issues/3887
+    # https://github.com/ansible/proposals/issues/92
+    # Perhaps in lieu of tailing we could simply print pihole_install.log in the next task?
+    - name: Ingest the Pi-Hole install log file
+      ansible.builtin.slurp:
+        src: "{{ pihole.repo.path }}/pihole_install.log"
+      register: pihole_install_log
+      when: pihole_testing | bool
+
+    # https://www.shellhacks.com/ansible-cat-file-print-read-file-content
+    - name: Display the install log
+      debug:
+        msg: "{{ pihole_install_log | b64decode }}"
+      when: pihole_testing | bool
+  # END OF BLOCK

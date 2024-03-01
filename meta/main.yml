@@ -6,5 +6,5 @@ dependencies:
     become: true
     tags: apache
     when:
+      - not (host_restrictions | bool) or ansible_hostname == "alexandria"
       - ansible_lsb.id == "Raspbian"
-      - ansible_hostname == "alexandria"

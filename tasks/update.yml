@@ -1,0 +1,4 @@
+---
+
+- name: Update Pi-Hole (pihole -up)
+  ansible.builtin.command: "{{ pihole.path.bin }}/pihole -up"

@@ -1,0 +1,25 @@
+---
+
+- name: Check that at least one upstream DNS server is defined
+  ansible.builtin.assert:
+    that:
+      - pihole is defined
+      - pihole.setupVars.dns_servers is defined
+      - pihole.setupVars.dns_servers | length > 0
+
+- name: Check that password is defined
+  ansible.builtin.assert:
+    that:
+      - pihole.setupVars.webpassword is defined
+      - pihole.setupVars.webpassword is string
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/fail_module.html
+- name: Check that the password has been changed from default
+  ansible.builtin.fail:
+    msg: |
+      Please customise the contents of setupVars in defaults.yml before running
+      this role, in particular you must change the password!
+  when: pihole.setupVars.webpassword == "somelongandsecretstringofyourown"
+
+# we could perhaps add more checks:
+# privacylevel >= 0 && privacylevel <= 4

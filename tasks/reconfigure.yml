@@ -1,0 +1,58 @@
+---
+
+- name: Configure pihole-FTL.conf
+  ansible.builtin.template:
+    src: pihole-FTL.conf.j2
+    dest: "{{ pihole.path.config }}/pihole-FTL.conf"
+    owner: "{{ pihole.user }}"
+    group: "{{ pihole.group }}"
+    mode: 0664
+  # for changes to pihole-FTL.conf to take effect FTL must be restarted
+  notify: restart pihole-FTL
+
+- name: Configure setupVars.conf
+  ansible.builtin.template:
+    src: setupVars.conf.j2
+    dest: "{{ pihole.path.config }}/setupVars.conf"
+    owner: "{{ pihole.user }}"
+    group: "{{ pihole.group }}"
+    mode: 0664
+  notify: reconfigure pihole
+
+- name: Install bash completion for Pi-Hole
+  ansible.builtin.copy:
+    src: "{{ pihole.repo.path }}/advanced/bash-completion/pihole"
+    remote_src: true
+    dest: "/etc/bash_completion.d"
+    owner: root
+    group: root
+    mode: 0644
+
+# test and see how it affects things, compare with default index page
+# - name: Install Pi-Hole custom index page
+#   ansible.builtin.file:
+#     src: "{{ pihole.repo.path }}/advanced/{{ item }}"
+#     dest: "{{ pihole.path.web_directory }}/{{ item }}"
+#     state: link
+#     owner: www-data
+#     group: www-data
+#     mode: 0644
+#   loop:
+#     - index.html
+#     - index.js
+
+# could be interesting to add: managing ad-lists from Ansible
+# I'm not sure this command syntax works, or how it works
+# - name: "Import adlists with bash"
+#   when: install_pihole__adlists | default(false)
+#   loop: "{{ install_pihole__adlists }}"
+#   loop_control:
+#     loop_var: adlist
+#   ansible.builtin.command: "/usr/local/bin/pihole -a adlist add {{ adlist }}"
+
+# update the list of block-lists
+# except Pi-Hole does this on a weekly basis by default, so no need unless this role
+# is managing the ad-lists
+# https://reddit.com/r/pihole/comments/fetzg6/autoupdate_pihole_blacklists_gravity
+# - name: "Update Gravity"
+#   ansible.builtin.command: "{{ pihole.path.bin }}/pihole updateGravity"
