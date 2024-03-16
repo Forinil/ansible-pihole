@@ -13,12 +13,13 @@
     - config-only
     - updates-only
 
+# Do NOT run assertions for updates-only (or backups-only, although not verified).
+# updates-only part of plays that don't even define pihole dict, causing
+# assertion to trip and play to fail for no good reason.
 - ansible.builtin.import_tasks: assert.yml
   tags:
     - assert
-    - backups-only
     - config-only
-    - updates-only
 
 
 - name: Setup Pi-Hole

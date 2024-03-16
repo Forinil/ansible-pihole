@@ -159,7 +159,7 @@ IGNORE_LOCALHOST={{ pihole.ftlconfig.ignore_localhost | default("no") }}
 {# Should FTL analyze AAAA queries? The DNS server will handle AAAA queries the same way,
 regardless of this setting. All this does is ignoring AAAA queries when computing the
 statistics of Pi-hole. This setting is considered obsolete and will be removed in a future version. #}
-AAAA_QUERY_ANALYSIS= {{ phole.ftlconfig.aaaa_query_analysis | default("yes") }}
+AAAA_QUERY_ANALYSIS={{ phole.ftlconfig.aaaa_query_analysis | default("yes") }}
 
 {# ANALYZE_ONLY_A_AND_AAAA=false|true #}
 {# Should FTL only analyze A and AAAA queries? #}
@@ -212,7 +212,7 @@ want FTL to wait a given amount of time before trying to start the DNS revolver.
 This setting takes any integer value between 0 and 300 seconds. To prevent delayed
 startup while the system is already running and FTL is restarted, the delay only
 takes place within the first 180 seconds (hard-coded) after booting. #}
-DELAY_STARTUP= {{ pihole.ftlconfig.delay_startup | default("0") }}
+DELAY_STARTUP={{ pihole.ftlconfig.delay_startup | default("0") }}
 
 {# NICE=-10 (PR #798) #}
 {# Can be used to change the niceness of Pi-hole FTL. Defaults to -10 and can be disabled altogether
