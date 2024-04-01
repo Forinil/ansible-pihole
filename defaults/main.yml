@@ -40,6 +40,10 @@ pihole_default:
   # Apache will be installed and lighttpd will be uninstalled.
   apache_enabled: false
 
+  # the desktop launcher is meant to be installed on your own workstation, not on
+  # the server running Pi-Hole (see logic inside, but please note it requires you
+  # to put this role in both your "workstation" as well as "server" playbook)
+  desktop_launcher_enabled: false
 
 # role_constraints=true by default to restrict this role to only those tasks
 # expected to work for any user, not just my own environment

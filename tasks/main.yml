@@ -60,7 +60,9 @@
 # I expect this task to be skipped for you (unless you happen to have placed your
 # Pi-Hole host in a group containing the string "workstation").
 - ansible.builtin.import_tasks: desktop-entry.yml
-  when: group_names is search("workstation")
+  when:
+    - pihole.desktop_launcher_enabled | bool
+    - not (host_restrictions | bool) or group_names is search("workstation")
   tags: desktop-entry
 
 - ansible.builtin.import_tasks: log-git-state.yml
