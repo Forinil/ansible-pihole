@@ -20,6 +20,7 @@ pihole_default:
     scripts: /opt/pihole
     web_interface: /var/www/html/admin
     web_directory: /var/www/html/pihole
+    dnsmasq: /etc/dnsmasq.d
 
   # see ./templates/setupVars.conf.j2 for settings and their descriptions
   setupVars:
@@ -34,6 +35,12 @@ pihole_default:
     maxdbdays: "365"
     privacylevel: "1"
     mozilla_canary: "true"
+
+  dnsmasq:
+    # maximum number of concurrent DNS queries, 150 by default
+    # https://discourse.pi-hole.net/t/resolved-maximum-number-of-concurrent-dns-queries-reached/60970
+    # https://discourse.pi-hole.net/t/maximum-number-of-concurrent-dns-queries-reached/51804
+    dns_forward_max: 150
 
   # settings for Pi-Hole if using Apache webserver (because I run Heimdall alongside Pi-Hole
   # and cannot be bothered to learn to configure lighttpd). Note that in this case

@@ -28,6 +28,16 @@
     group: root
     mode: 0644
 
+- name: Configure our custom dnsmasq settings
+  ansible.builtin.template:
+    src: dnsmasq.conf.j2
+    dest: "{{ pihole.path.dnsmasq }}/02-pihole-custom.conf"
+    owner: root
+    group: root
+    mode: 0644
+  # there is no point to restart dnsmasq.service, since it is inactive by default anyway
+  notify: restart pihole-FTL
+
 # test and see how it affects things, compare with default index page
 # - name: Install Pi-Hole custom index page
 #   ansible.builtin.file:
