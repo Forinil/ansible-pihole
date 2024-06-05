@@ -5,8 +5,8 @@ Type=Application
    and thus don't have access to the pihole vars defined in luxor's hosts.yml
    There is no easy way to expose the host-specific vars from the luxor playbook
    to the workstation playbook #}
-Exec=/usr/bin/chromium-browser --new-window --app="http://{{ hostinfo.bilbeis.pihole }}/admin"
-GenericName={{ hostinfo.bilbeis.pihole }}
+Exec=/usr/bin/chromium-browser --new-window --app="http://{{ pihole.desktop_launcher.ipv4 }}/admin"
+GenericName={{ pihole.desktop_launcher.ipv4 }}
 Comment=
 Categories=Network;WebDevelopment;
 Keywords=pihole;webapp;pi-hole;fs1;lan;

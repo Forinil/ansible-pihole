@@ -1,0 +1,22 @@
+---
+
+# tested on Debian Bookworm
+pihole_apt_dependencies:
+  - curl                  # command line tool for transferring data with URL syntax
+  - git                   # fast, scalable, distributed revision control system
+  - procps                # /proc file system utilities
+  - lighttpd-mod-deflate  # fast webserver with minimal memory footprint
+  - apt-utils             # package management related utility programs
+  - whiptail              # Displays user-friendly dialog boxes from shell scripts
+  # clashes with raspberrypi-ui-mods which breaks lightdm, see issue for notes
+  # https://codeberg.org/ansible/pihole/issues/3
+  # - dhcpcd5               # DHCPv4, IPv6RA and DHCPv6 client with IPv4LL support
+  - dnsutils              # Transitional package for bind9-dnsutils
+  - bc                    # GNU bc arbitrary precision calculator language
+  - dnsmasq               # Small caching DNS proxy and DHCP/TFTP server
+  - unzip                 # De-archiver for .zip files
+  - wget                  # retrieves files from the web
+  - sudo                  # Provide limited super user privileges to specific users
+  - netcat-openbsd        # TCP/IP swiss army knife
+  - cron                  # process scheduling daemon
+  - iproute2              # networking and traffic control tools

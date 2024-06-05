@@ -7,6 +7,13 @@
     - config-only
     - updates-only
 
+- name: Define apt packages for {{ ansible_distribution }}
+  ansible.builtin.include_vars: "{{ ansible_distribution }}.yml"
+  # only expected to support Ubuntu or Raspbian (Debian)
+  when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+  # could use ansible_lsb.id == "Ubuntu" or "Raspbian" instead, or perhaps
+  # ansible_kernel_version is search("Ubuntu") or is search("Raspbian")
+
 - ansible.builtin.import_tasks: version-check.yml
   tags:
     - backups-only
@@ -61,7 +68,7 @@
 # Pi-Hole host in a group containing the string "workstation").
 - ansible.builtin.import_tasks: desktop-entry.yml
   when:
-    - pihole.desktop_launcher_enabled | bool
+    - pihole.desktop_launcher.enabled | bool
     - not (host_restrictions | bool) or group_names is search("workstation")
   tags: desktop-entry
 

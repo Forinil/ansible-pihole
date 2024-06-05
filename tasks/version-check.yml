@@ -14,6 +14,11 @@
         url: "https://api.github.com/repos/{{ pihole.repo.gh_slug }}/releases/latest"
       run_once: true
       delegate_to: localhost
+      # explicitly becoming user used on Ansible controller (i.e., local_user)
+      # is crucial when running role against target using different named user
+      # otherwise this task just freezes forever without any errors
+      become: true
+      become_user: "{{ local_user }}"
       register: pihole_uri
 
     - name: Get latest pihole version
