@@ -11,7 +11,3 @@
 - name: Reconfigure Pi-Hole subsystems
   ansible.builtin.command: "{{ pihole.path.bin }}/pihole -r"
   listen: reconfigure pihole
-
-- name: Update desktop entry database
-  ansible.builtin.command: >
-    /usr/bin/update-desktop-database -v {{ xdg_desktop_entries }}

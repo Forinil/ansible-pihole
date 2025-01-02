@@ -58,17 +58,6 @@
       tags: config-only
   # END OF BLOCK
 
-
-# Note that I consciously decided not to use "host_restrictions" here to avoid
-# polluting anyone's server with a spurious desktop launcher.
-# I expect this task to be skipped for you (unless you happen to have placed your
-# Pi-Hole host in a group containing the string "workstation").
-- ansible.builtin.import_tasks: desktop-entry.yml
-  when:
-    - pihole.desktop_launcher.enabled | bool
-    - not (host_restrictions | bool) or group_names is search("workstation")
-  tags: desktop-entry
-
 - ansible.builtin.import_tasks: log-git-state.yml
   tags:
     - log-git-state

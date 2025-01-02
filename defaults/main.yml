@@ -42,14 +42,6 @@ pihole_default:
     # https://discourse.pi-hole.net/t/maximum-number-of-concurrent-dns-queries-reached/51804
     dns_forward_max: 150
 
-  # the desktop launcher is meant to be installed on your own workstation, not on
-  # the server running Pi-Hole (see logic inside, but please note it requires you
-  # to put this role in both your "workstation" as well as "server" playbook)
-  desktop_launcher:
-    enabled: false
-    # if desktop_launcher is enabled, please replace with your Pi-Hole's IPv4 address
-    ipv4: 192.168.1.2
-
 # For public roles, keep this value as-is (to allow everyone other than me to run this role as-is)
 # For solarchemist's own environment, this var is overriden in group_vars or playbook
 # This is used in logic using hostnames specific to my environment, to skip those evaluations
