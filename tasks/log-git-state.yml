@@ -6,6 +6,7 @@
 # dirty (untracked changes) or not, but that's not yet implemented here.
 - name: Log the last commit and git repo status to playbook log-file
   local_action: >
+    mkdir -p log
     shell git -C {{ role_path }} log
     --pretty="Role '{{ role_name }}' last commit %h %ci by %cn" -1 >>
     log/{{ inventory_hostname }}.log
