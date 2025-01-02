@@ -56,9 +56,6 @@
 
     - ansible.builtin.import_tasks: reconfigure.yml
       tags: config-only
-
-    - ansible.builtin.import_tasks: apache-vhost.yml
-      when: pihole.apache_enabled | bool
   # END OF BLOCK
 
 

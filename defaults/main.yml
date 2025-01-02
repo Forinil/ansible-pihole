@@ -42,11 +42,6 @@ pihole_default:
     # https://discourse.pi-hole.net/t/maximum-number-of-concurrent-dns-queries-reached/51804
     dns_forward_max: 150
 
-  # settings for Pi-Hole if using Apache webserver (because I run Heimdall alongside Pi-Hole
-  # and cannot be bothered to learn to configure lighttpd). Note that in this case
-  # Apache will be installed and lighttpd will be uninstalled.
-  apache_enabled: false
-
   # the desktop launcher is meant to be installed on your own workstation, not on
   # the server running Pi-Hole (see logic inside, but please note it requires you
   # to put this role in both your "workstation" as well as "server" playbook)

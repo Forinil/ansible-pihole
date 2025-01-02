@@ -1,10 +1,2 @@
 ---
-
-dependencies:
-  # depend on Apache, but only for the host that runs Heimdall
-  - role: apache
-    become: true
-    tags: apache
-    when:
-      - not (host_restrictions | bool) or ansible_hostname == "alexandria"
-      - ansible_lsb.id == "Raspbian"
+dependencies: []
