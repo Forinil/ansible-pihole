@@ -18,6 +18,6 @@ pihole_apt_dependencies:
   - unzip                 # De-archiver for .zip files
   - wget                  # retrieves files from the web
   - sudo                  # Provide limited super user privileges to specific users
-  - netcat                # TCP/IP swiss army knife -- transitional package
+  - netcat-openbsd        # TCP/IP swiss army knife -- transitional package
   - cron                  # process scheduling daemon
   - iproute2              # networking and traffic control tools
