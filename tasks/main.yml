@@ -58,9 +58,10 @@
       tags: config-only
   # END OF BLOCK
 
-- ansible.builtin.import_tasks: log-git-state.yml
-  tags:
-    - log-git-state
-    - backups-only
-    - config-only
-    - updates-only
+# This refuses to work for some reason
+# - ansible.builtin.import_tasks: log-git-state.yml
+#   tags:
+#     - log-git-state
+#     - backups-only
+#     - config-only
+#     - updates-only
