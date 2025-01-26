@@ -9,5 +9,9 @@
 # rather than restarting the systemd job, use pihole's
 # builtin ability to apply changed configuration
 - name: Reconfigure Pi-Hole subsystems
-  ansible.builtin.command: "{{ pihole.path.bin }}/pihole -r"
+  ansible.builtin.command: 
+    argv:
+      - "/etc/.pihole/automated install/basic-install.sh" 
+      - "--reconfigure" 
+      - "--unattended"
   listen: reconfigure pihole
